@@ -1,0 +1,28 @@
+[Server]
+  [Server.HTTP]
+    port = 8085
+    JwtSecret = ""
+
+    [Server.HTTP.Pprof]
+      Enabled = true
+      AccessIps = ['::1', '127.0.0.1']
+
+[Data]
+  [Data.Database]
+    Dsn = './configs/data.db'
+    MaxIdleConns = 1
+    MaxOpenConns = 1
+    ConnMaxLifetime = '6h0m0s'
+    SlowThreshold = '200ms'
+
+[Log]
+  # 日志存储目录，不能使用特殊符号
+  Dir = './logs'
+  # 记录级别 debug/info/warn/error
+  Level = 'info'
+  # 保留日志多久，超过时间自动删除
+  MaxAge = '744h0m0s'
+  # 多久时间，分割一个新的日志文件
+  RotationTime = '8h0m0s'
+  # 多大文件，分割一个新的日志文件(MB)
+  RotationSize = 50

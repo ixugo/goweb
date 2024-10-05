@@ -1,0 +1,5 @@
+
+logs/*
+__debug_bin*
+*.db
+*.log
