@@ -256,6 +256,27 @@ func RegisterVersion(r gin.IRouter, verAPI VersionAPI, handler ...gin.HandlerFun
 }
 ```
 
+## 错误处理
+
+core 层导出的函数或 API 层返回的错误，应该返回 web.Error 类型的错误。
+
+在封装的 web.WarpH 中，会正确记录错误到日志并返回给前端。
+
+```go
+type Error struct {
+	reason  string   // 错误原因
+	msg     string   // 错误信息，用户可读
+	details []string // 错误扩展，开发可读
+}
+```
+
+reason 是预定义的错误原因，以英文单词定义，同时用于区分返回的 http response status code。
+
+msg 是展示给用户看的内容。
+
+details 仅开发模式使用，将完整的错误内容暴露给开发者，方便前后端开发调试。
+
+
 ## 项目主要依赖
 
 + gin
