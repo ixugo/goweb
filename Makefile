@@ -60,7 +60,6 @@ expva/db:
 audit:
 	@make title content='Formatting code...'
 	gofumpt -l -w .
-	go fmt ./...
 	@make title content='Vetting code...'
 	go vet ./...
 	@make title content='Running tests...'
