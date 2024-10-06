@@ -16,12 +16,13 @@ import (
 
 var ProviderSet = wire.NewSet(
 	wire.Struct(new(Usecase), "*"), NewHTTPHandler, NewVersion,
+	NewVersionAPI,
 )
 
 type Usecase struct {
 	Conf    *conf.Bootstrap
 	DB      *gorm.DB
-	Version *version.Core
+	Version VersionAPI
 }
 
 // NewHTTPHandler 生成Gin框架路由内容

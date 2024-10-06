@@ -6,17 +6,19 @@ import (
 	"github.com/ixugo/goweb/pkg/web"
 )
 
-type Version struct {
+type VersionAPI struct {
 	ver *version.Core
 }
 
-func registerVersion(r gin.IRouter, uc *Usecase, handler ...gin.HandlerFunc) {
-	verEngine := Version{ver: uc.Version}
-
-	ver := r.Group("/version", handler...)
-	ver.GET("", web.WarpH(verEngine.getVersion))
+func NewVersionAPI(ver *version.Core) VersionAPI {
+	return VersionAPI{ver: ver}
 }
 
-func (v Version) getVersion(_ *gin.Context, _ *struct{}) (any, error) {
+func registerVersion(r gin.IRouter, verAPI VersionAPI, handler ...gin.HandlerFunc) {
+	ver := r.Group("/version", handler...)
+	ver.GET("", web.WarpH(verAPI.getVersion))
+}
+
+func (v VersionAPI) getVersion(_ *gin.Context, _ *struct{}) (any, error) {
 	return gin.H{"msg": "test"}, nil
 }

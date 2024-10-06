@@ -23,7 +23,7 @@ func setupRouter(r *gin.Engine, uc *Usecase) {
 	auth := web.AuthMiddleware(uc.Conf.Server.HTTP.JwtSecret)
 	r.GET("/health", web.WarpH(getHealth))
 
-	registerVersion(r, uc, auth)
+	registerVersion(r, uc.Version, auth)
 }
 
 type getHealthOutput struct {

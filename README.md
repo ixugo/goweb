@@ -192,28 +192,21 @@ func NewVersion(db *gorm.DB) *version.Core {
 在 API 层新建「version.go」文件，写入
 
 ```go
-package api
-
-import (
-	"github.com/gin-gonic/gin"
-	"github.com/ixugo/goweb/internal/core/version"
-	"github.com/ixugo/goweb/pkg/web"
-)
-
 // version 业务函数命名空间
-type Version struct {
+type VersionAPI struct {
 	ver *version.Core
 }
 
+func NewVersionAPI(ver *version.Core) VersionAPI {
+	return VersionAPI{ver: ver}
+}
 // registerVersion 向路由注册业务接口
-func registerVersion(r gin.IRouter, uc *Usecase, handler ...gin.HandlerFunc) {
-	verEngine := Version{ver: uc.Version}
-
+func registerVersion(r gin.IRouter, verAPI VersionAPI, handler ...gin.HandlerFunc) {
 	ver := r.Group("/version", handler...)
-	ver.GET("", web.WarpH(verEngine.getVersion))
+	ver.GET("", web.WarpH(verAPI.getVersion))
 }
 
-func (v Version) getVersion(_ *gin.Context, _ *struct{}) (any, error) {
+func (v VersionAPI) getVersion(_ *gin.Context, _ *struct{}) (any, error) {
 	return gin.H{"msg": "test"}, nil
 }
 ```
@@ -250,3 +243,15 @@ API 只做参数获取，返回响应参数，只做最少的事情，方便从 
 当然，有可能出参也是入参，你可以定义别名，也可以直接使用。
 
 很多时候，我们都想明确自己在做什么，为什么这样做，这个「常见问题」希望能提供一点解惑思路。
+
+> 如何为 goweb 编写业务插件?
+
+```go
+// RegisterVersion 有一些通用的业务，它们被其它业务依赖，属于业务的基层模块，例如表版本控制，字典，验证码，定时任务，用户管理等等。
+// 约定以 Register<Core> 方式编写函数，注入 gin 路由，命名空间，中间件三个参数。
+// 具体可以参考项目代码
+func RegisterVersion(r gin.IRouter, verAPI VersionAPI, handler ...gin.HandlerFunc) {
+	ver := r.Group("/version", handler...)
+	ver.GET("", web.WarpH(verAPI.getVersion))
+}
+```
