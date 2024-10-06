@@ -30,6 +30,7 @@ init:
 	go install github.com/google/wire/cmd/wire@latest
 	go install github.com/divan/expvarmon@latest
 	go install github.com/rakyll/hey@latest
+	go install mvdan.cc/gofumpt@latest
 
 ## wire: 生成依赖注入代码
 wire:
@@ -56,8 +57,9 @@ expva/db:
 
 ## audit: 检查代码依赖/格式化/测试
 .PHONY: audit
-audit: vendor
+audit:
 	@make title content='Formatting code...'
+	gofumpt -l -w .
 	go fmt ./...
 	@make title content='Vetting code...'
 	go vet ./...
@@ -105,24 +107,46 @@ FINAL_PATCH := $(shell echo $(GIT_VERSION_PATCH) + $(COMMITS) | bc)
 VERSION := v$(GIT_VERSION_MAJOR).$(GIT_VERSION_MINOR).$(FINAL_PATCH)
 
 
-.PHONY: build
-BUILD_LOCAL_DIR := ./output/local
-build:
-	@echo -n 'Building local...'
-	@rm -rf BUILD_LOCAL_DIR
-	@go build -ldflags="-s -w -X main.build=local -X main.buildVersion=$(VERSION)" -o=$(BUILD_LOCAL_DIR)/app ./cmd/server
-	@tar -czf $(BUILD_LOCAL_DIR)/$(MODULE_NAME)-$(VERSION)-$(HASH_AND_DATE).tar.gz $(BUILD_LOCAL_DIR)/app
-	@echo 'OK'
+# .PHONY: build
+# BUILD_LOCAL_DIR := ./build/local
+# build:
+# 	@echo -n 'Building local...'
+# 	@rm -rf BUILD_LOCAL_DIR
+# 	@go build -ldflags="-s -w -X main.build=local -X main.buildVersion=$(VERSION)" -o=$(BUILD_LOCAL_DIR)/app ./cmd/server
+# 	@tar -czf $(BUILD_LOCAL_DIR)/$(MODULE_NAME)-$(VERSION)-$(HASH_AND_DATE).tar.gz $(BUILD_LOCAL_DIR)/app
+# 	@echo 'OK'
 
 
-## build: 构建应用
+## build/clean: 清理构建缓存目录
+.PHONY: build/clean
+build/clean:
+	@rm -rf ./build/*
+
+
+## build/linux: 构建 linux 应用
 .PHONY: build/linux
-BUILD_LINUX_AMD64_DIR := ./output/linux_amd64
+BUILD_LINUX_AMD64_DIR := ./build/linux_amd64
 build/linux:
 	@echo -n 'Building linux...'
 	@rm -rf BUILD_LINUX_AMD64_DIR
-	@GOOS=linux GOARCH=amd64 go build -ldflags="-s -X main.build=prod -X main.buildVersion=$(VERSION)" -o=$(BUILD_LINUX_AMD64_DIR)/app ./cmd/server
+	@GOOS=linux GOARCH=amd64 go build \
+		-trimpath \
+		-ldflags="-s -w -X main.buildVersion=$(VERSION) -X main.gitBranch=$(BRANCH_NAME) -X main.gitHash=$(HASH_AND_DATE) -X main.buildTimeAt=$(date +%s) -X main.release=true" \
+		-o=$(BUILD_LINUX_AMD64_DIR)/bin ./cmd/server
 	@echo 'OK'
+
+## build/windows: 构建 windows 应用
+.PHONY: build/windows
+BUILD_WINDOWS_AMD64_DIR := ./build/windows_amd64
+build/windows:
+	@echo -n 'Building windows...'
+	@rm -rf BUILD_WINDOWS_AMD64_DIR
+	@GOOS=windows GOARCH=amd64 go build \
+		-trimpath \
+		-ldflags="-s -w -X main.buildVersion=$(VERSION) -X main.gitBranch=$(BRANCH_NAME) -X main.gitHash=$(HASH_AND_DATE) -X main.buildTimeAt=$(date +%s) -X main.release=true" \
+		-o=$(BUILD_WINDOWS_AMD64_DIR)/bin ./cmd/server
+	@echo 'OK'
+
 
 
 ## info: 查看构建版本相关信息
@@ -137,14 +161,13 @@ info:
 
 
 docker/build:
-	@docker build --force-rm=true -t etcgo:latest .
+	@docker build --force-rm=true -t $(MODULE_NAME):latest .
 
 docker/save:
-	@docker save -o etcgo_$(VERSION).tar etcgo:latest
+	@docker save -o $(MODULE_NAME)_$(VERSION).tar $(MODULE_NAME):latest
 
 docker/push:
-	@scp etcgo_$(VERSION).tar $(PRODUCTION_HOST):/home/easy/app/etc
-	@rm -rf etcgo_$(VERSION).tar
+	@docker push $(MODULE_NAME):latest
 
 # ==================================================================================== #
 # PRODUCTION
@@ -153,6 +176,7 @@ docker/push:
 PRODUCTION_HOST = xf-local-test
 
 ## release/push: 发布产品到服务器，仅上传文件
+# 中小项目可以引入 CI/CD，也可以通过命令快速发布到测试服务器上。
 release/push:
-	@scp output/linux_amd64/app $(PRODUCTION_HOST):/home/app/$(MODULE_NAME)
-	@echo "Publish Successed"
+	@scp build/linux_amd64/app $(PRODUCTION_HOST):/home/app/$(MODULE_NAME)
+	@echo "push Successed"
