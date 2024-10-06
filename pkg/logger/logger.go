@@ -138,20 +138,20 @@ type Config struct {
 	Level        string // debug/info/warn/error
 }
 
-func getLevel(level string) zapcore.Level {
-	switch strings.ToLower(level) {
-	case "debug":
-		return zap.DebugLevel
-	case "info":
-		return zapcore.InfoLevel
-	case "warn":
-		return zap.WarnLevel
-	case "error":
-		return zap.ErrorLevel
-	default:
-		return zap.InfoLevel
-	}
-}
+// func getLevel(level string) zapcore.Level {
+// 	switch strings.ToLower(level) {
+// 	case "debug":
+// 		return zap.DebugLevel
+// 	case "info":
+// 		return zapcore.InfoLevel
+// 	case "warn":
+// 		return zap.WarnLevel
+// 	case "error":
+// 		return zap.ErrorLevel
+// 	default:
+// 		return zap.InfoLevel
+// 	}
+// }
 
 // NewDefaultConfig 创建默认配置
 func NewDefaultConfig() Config {

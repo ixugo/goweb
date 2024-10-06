@@ -18,14 +18,14 @@ import (
 )
 
 var (
-	buildVersion string = "0.0.1" // 构建版本号
-	gitBranch    string = "dev"   // git 分支
-	gitHash      string = "debug" // git 提交点哈希值
-	release      string           // 发布模式 true/false
-	buildTime    string           // 构建时间戳
+	buildVersion = "0.0.1" // 构建版本号
+	gitBranch    = "dev"   // git 分支
+	gitHash      = "debug" // git 提交点哈希值
+	release      string    // 发布模式 true/false
+	buildTime    string    // 构建时间戳
 )
 
-var providerSet = wire.NewSet(GetBuildRelease)
+var providerSet = wire.NewSet(GetBuildRelease) // nolint
 
 func GetBuildRelease() bool {
 	v, _ := strconv.ParseBool(release)
@@ -52,6 +52,7 @@ func main() {
 		expvar.NewString("version").Set(buildVersion)
 		expvar.NewString("git_branch").Set(gitBranch)
 		expvar.NewString("git_hash").Set(gitHash)
+		expvar.NewString("build_time").Set(buildTime)
 		expvar.Publish("timestamp", expvar.Func(func() any {
 			return time.Now().Format(time.DateTime)
 		}))

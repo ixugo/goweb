@@ -255,3 +255,10 @@ func RegisterVersion(r gin.IRouter, verAPI VersionAPI, handler ...gin.HandlerFun
 	ver.GET("", web.WarpH(verAPI.getVersion))
 }
 ```
+
+## 项目主要依赖
+
++ gin
++ gorm
++ slog / zap
++ wire
