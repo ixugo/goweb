@@ -15,9 +15,9 @@ var startRuntime = time.Now()
 func setupRouter(r *gin.Engine, uc *Usecase) {
 	r.Use(
 		web.Mertics(),
-		web.Logger(slog.Default(), uc.Conf.Server.Debug, func(path string) bool {
-			return false
-		}, nil),
+		web.Logger(slog.Default(), func(c *gin.Context) bool {
+			return uc.Conf.Server.Debug
+		}),
 	)
 
 	auth := web.AuthMiddleware(uc.Conf.Server.HTTP.JwtSecret)

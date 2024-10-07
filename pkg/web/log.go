@@ -29,17 +29,14 @@ func (w *bodyLogWriter) Write(b []byte) (int, error) {
 	return w.ResponseWriter.Write(b)
 }
 
-// Logger ..
-func Logger(log *slog.Logger, recordBody bool, ignore func(path string) bool, fileds ...func(*gin.Context) []any) gin.HandlerFunc {
+// Logger 第二个参数是否记录 请求与响应的 body。
+func Logger(log *slog.Logger, recordBodyFn func(*gin.Context) bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 过滤无须记录日志的
-		path := c.Request.URL.Path
-		if ignore(path) {
-			c.Next()
-			return
-		}
 		var reqBody string
 		var blw bodyLogWriter
+
+		recordBody := recordBodyFn(c)
+
 		if recordBody {
 			// 请求参数
 			raw, err := c.GetRawData()
@@ -70,7 +67,7 @@ func Logger(log *slog.Logger, recordBody bool, ignore func(path string) bool, fi
 		out := []any{
 			"uid", uid,
 			"method", c.Request.Method,
-			"path", path,
+			"path", c.Request.URL.Path,
 			"query", c.Request.URL.RawQuery,
 			"remoteaddr", c.ClientIP(),
 			"statuscode", code,
@@ -79,9 +76,6 @@ func Logger(log *slog.Logger, recordBody bool, ignore func(path string) bool, fi
 		}
 		if recordBody {
 			out = append(out, []any{"request_body", reqBody, "response_body", blw.body.String()}...)
-		}
-		for _, v := range fileds {
-			out = append(out, v(c))
 		}
 		if code >= 200 && code < 400 {
 			log.Info("OK", out...)
