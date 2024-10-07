@@ -20,14 +20,11 @@ var ProviderSet = wire.NewSet(SetupDB)
 // SetupDB 初始化数据存储
 func SetupDB(c *conf.Bootstrap, l *slog.Logger, release bool) (*gorm.DB, error) {
 	cfg := c.Data.Database
-	dial, isSQLite := getDialector(filepath.Join(system.GetCWD(), cfg.Dsn))
+	dial, isSQLite := getDialector(cfg.Dsn)
 	if isSQLite {
 		cfg.MaxIdleConns = 1
 		cfg.MaxOpenConns = 1
 	}
-	// 使用postgres驱动打开数据库连接
-	// pg := postgres.Open(cfg.Dsn)
-	// 使用orm包初始化数据库连接
 	db, err := orm.New(true, dial, orm.Config{
 		MaxIdleConns:    int(cfg.MaxIdleConns),
 		MaxOpenConns:    int(cfg.MaxOpenConns),
@@ -45,5 +42,5 @@ func getDialector(dsn string) (gorm.Dialector, bool) {
 			DSN:        dsn,
 		}), false
 	}
-	return sqlite.Open(dsn), true
+	return sqlite.Open(filepath.Join(system.GetCWD(), dsn)), true
 }
