@@ -29,20 +29,20 @@ Goweb 目标是:
 
 ```bash
 .
-├── cmd				可执行程序
+├── cmd						可执行程序
 │   └── server
-├── configs			配置文件
-├── docs			设计文档/用户文档
-├── internal		私有业务
-│   ├── conf		配置模型
-│   ├── core		业务领域
-│   │   └── version	实际业务
+├── configs					配置文件
+├── docs					设计文档/用户文档
+├── internal					私有业务
+│   ├── conf					配置模型
+│   ├── core					业务领域
+│   │   └── version				实际业务
 │   │       └── store
-│   │           └── versiondb 数据库操作
-│   ├── data		数据库初始化
+│   │           └── versiondb 		数据库操作
+│   ├── data					数据库初始化
 │   └── web
-│       └── api 	RESTful API
-└── pkg				依赖库
+│       └── api					RESTful API
+└── pkg						依赖库
 ```
 
 
