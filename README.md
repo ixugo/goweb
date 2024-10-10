@@ -1,8 +1,28 @@
-这是一个适合中小项目的 Web 框架模板
+<p align="center">
+    <img src="./logo.png#gh-light-mode-only" alt="Goyave Logo" width="550"/>
+    <img src="./logo_dark.png#gh-dark-mode-only" alt="Goyave Logo" width="550"/>
+</p>
 
-使用此模型开始项目，必须清楚了解业务领域，做好领域拆分，根据业务功能拆分成不同的业务core。
+<p align="center">
+    <a href="https://github.com/ixugo/goweb/releases"><img src="https://img.shields.io/github/v/release/ixugo/goweb?include_prereleases" alt="Version"/></a>
+    <a href="https://github.com/ixugo/goweb/blob/master/LICENSE.txt"><img src="https://img.shields.io/dub/l/vibe-d.svg" alt="License"/></a>
+	<a href="https://gin-gonic.com"><img width=30px  src="https://avatars.githubusercontent.com/u/7894478?s=48&v=4" alt="GIN"/></a>
+    <a href="https://gorm.io"><img width=70px src="https://gorm.io/gorm.svg" alt="GORM"/></a>
 
-将这些解耦的 core 组合起来，达成业务需求。
+</p>
+
+# 企业 REST API 模板
+
+这是一个专注于 REST API 的完整 CURD 解决方案。
+
+Goweb 目标是:
+
++ 整洁架构，适用于中小型项目
++ 提供积木套装，快速开始项目，专注于业务开发
++ 令项目更简单，令研发心情更好
+
+如果你觉得以上描述符合你的需求，那就基于此模板开始吧。此项目会源源不断补充如何充分使用的文档指南。
+
 
 ## 目录说明
 

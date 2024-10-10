@@ -91,8 +91,7 @@ BRANCH := $$(git rev-parse --abbrev-ref HEAD)
 RECENT_TAG := $$(git describe --abbrev=0 2>&1 | grep -v "fatal" || echo "v0.0.0")
 
 # 检查是否为 v0.0 开头的版本
-# ifeq ($(RECENT_TAG),v0.0.0)
-ifneq ($(findstring v0.0.0, $(RECENT_TAG)),)
+ifeq ($(RECENT_TAG),v0.0.0)
 	COMMITS := $(shell git rev-list --count HEAD)
 else
 	COMMITS := $(shell git rev-list --count $(RECENT_TAG)..HEAD)
