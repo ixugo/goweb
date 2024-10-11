@@ -83,19 +83,24 @@ vendor:
 # 3. 如果没有任何 tag，则默认版本号为 v0.0.0，后续提交次数作为版本号的次版本号。
 
 # Get the current module name
-MODULE_NAME := $$(pwd | awk -F "/" '{print $$NF}')
+MODULE_NAME := $(shell pwd | awk -F "/" '{print $$NF}')
 # Get the latest commit hash and date
-HASH_AND_DATE := $$(git log -n1 --pretty=format:"%h-%cd" --date=format:%y%m%d | awk '{print $1}')
-BRANCH := $$(git rev-parse --abbrev-ref HEAD)
+HASH_AND_DATE := $(shell git log -n1 --pretty=format:"%h-%cd" --date=format:%y%m%d | awk '{print $1}')
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 
-RECENT_TAG := $$(git describe --abbrev=0 2>&1 | grep -v "fatal" || echo "v0.0.0")
+# 如果想仅支持注释标签，可以去掉 --tags，否则会包含轻量标签
+RECENT_TAG := $(shell git describe --tags --abbrev=0  2>&1 | grep -v "fatal" || echo "v0.0.0")
 
-# 检查是否为 v0.0 开头的版本
 ifeq ($(RECENT_TAG),v0.0.0)
 	COMMITS := $(shell git rev-list --count HEAD)
 else
 	COMMITS := $(shell git rev-list --count $(RECENT_TAG)..HEAD)
 endif
+
+
+test:
+	@echo "hello"
+	@echo ">>>${RECENT_TAG}"
 
 # 从版本字符串中提取主版本号、次版本号和修订号
 GIT_VERSION_MAJOR := $(shell echo $(RECENT_TAG) | cut -d. -f1 | sed 's/v//')
@@ -157,24 +162,25 @@ info:
 	@echo "support $$(go tool dist list | grep amd64 | grep linux)"
 
 
+IMAGE_NAME := $(MODULE_NAME):latest
 
 docker/build:
-	@docker build --force-rm=true -t $(MODULE_NAME):latest .
+	@docker buildx build --force-rm=true --platform linux/amd64 -t $(IMAGE_NAME) .
 
 docker/save:
-	@docker save -o $(MODULE_NAME)_$(VERSION).tar $(MODULE_NAME):latest
+	@docker save -o $(MODULE_NAME)_$(VERSION).tar $(IMAGE_NAME)
 
 docker/push:
-	@docker push $(MODULE_NAME):latest
+	@docker push $(IMAGE_NAME)
 
 # ==================================================================================== #
 # PRODUCTION
 # ==================================================================================== #
 
-PRODUCTION_HOST = xf-local-test
+PRODUCTION_HOST = remoteHost
 
 ## release/push: 发布产品到服务器，仅上传文件
 # 中小项目可以引入 CI/CD，也可以通过命令快速发布到测试服务器上。
 release/push:
-	@scp build/linux_amd64/app $(PRODUCTION_HOST):/home/app/$(MODULE_NAME)
+	@scp build/linux_amd64/bin $(PRODUCTION_HOST):/home/app/$(MODULE_NAME)
 	@echo "push Successed"
