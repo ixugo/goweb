@@ -98,16 +98,18 @@ else
 endif
 
 
-test:
-	@echo "hello"
-	@echo ">>>${RECENT_TAG}"
-
 # 从版本字符串中提取主版本号、次版本号和修订号
 GIT_VERSION_MAJOR := $(shell echo $(RECENT_TAG) | cut -d. -f1 | sed 's/v//')
 GIT_VERSION_MINOR := $(shell echo $(RECENT_TAG) | cut -d. -f2)
 GIT_VERSION_PATCH := $(shell echo $(RECENT_TAG) | cut -d. -f3)
-FINAL_PATCH := $(shell echo $(GIT_VERSION_PATCH) + $(COMMITS) | bc)
+
+# windows 系统 git bash 没有 bc
+# FINAL_PATCH := $(shell echo $(GIT_VERSION_PATCH) + $(COMMITS) | bc)
+FINAL_PATCH := $(shell echo '$(GIT_VERSION_PATCH) $(COMMITS)' | awk '{print $$1 + $$2}')
 VERSION := v$(GIT_VERSION_MAJOR).$(GIT_VERSION_MINOR).$(FINAL_PATCH)
+
+# test:
+# 	@echo ">>>${RECENT_TAG}"
 
 
 # .PHONY: build

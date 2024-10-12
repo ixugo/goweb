@@ -2,13 +2,14 @@ package web
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 )
 
 // ScrollPager 滚动翻页
 type ScrollPager[T any] struct {
-	Data []T    `json:"data"`
-	Next string `json:"next"`
+	Items []T    `json:"items"`
+	Next  string `json:"next"`
 }
 
 // PageOutput 分页数据
@@ -82,4 +83,15 @@ func Offset(page, size int) int {
 		return 1
 	}
 	return (page - 1) * size
+}
+
+// GetBaseURL 提取请求地址
+// 例如 http://127.0.0.1:8080/health 提取出 http://127.0.0.1:8080
+func GetBaseURL(req *http.Request) string {
+	scheme := "http"
+	if req.TLS != nil {
+		scheme = "https"
+	}
+	host := req.Host
+	return fmt.Sprintf("%s://%s", scheme, host)
 }
