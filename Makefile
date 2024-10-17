@@ -94,9 +94,9 @@ RECENT_TAG := $(shell git describe --tags --abbrev=0  2>&1 | grep -v "fatal" || 
 ifeq ($(RECENT_TAG),v0.0.0)
 	COMMITS := $(shell git rev-list --count HEAD)
 else
-	COMMITS := $(shell git rev-list --count $(RECENT_TAG)..HEAD)
+	COMMITS := $(shell git log --first-parent --format='%ae' $(RECENT_TAG)..$(BRANCH) | wc -l)
+	COMMITS := $(shell echo $(COMMITS) | sed 's/ //g')
 endif
-
 
 # 从版本字符串中提取主版本号、次版本号和修订号
 GIT_VERSION_MAJOR := $(shell echo $(RECENT_TAG) | cut -d. -f1 | sed 's/v//')

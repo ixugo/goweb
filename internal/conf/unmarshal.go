@@ -2,14 +2,11 @@ package conf
 
 import (
 	"os"
-	"path/filepath"
 
-	"github.com/ixugo/goweb/pkg/system"
 	"github.com/pelletier/go-toml/v2"
 )
 
-func SetupConfig(v any) error {
-	path := filepath.Join(system.GetCWD(), "configs", "config.toml")
+func SetupConfig(v any, path string) error {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return err

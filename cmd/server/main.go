@@ -2,6 +2,7 @@ package main
 
 import (
 	"expvar"
+	"flag"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -27,15 +28,19 @@ var (
 
 var providerSet = wire.NewSet(GetBuildRelease) // nolint
 
+// 自定义配置目录
+var configDir = flag.String("conf", "./configs", "config directory, eg: -conf /configs/")
+
 func GetBuildRelease() bool {
 	v, _ := strconv.ParseBool(release)
 	return v
 }
 
 func main() {
+	flag.Parse()
 	// 初始化配置
 	var bc conf.Bootstrap
-	if err := conf.SetupConfig(&bc); err != nil {
+	if err := conf.SetupConfig(&bc, *configDir); err != nil {
 		panic(err)
 	}
 	// 初始化日志
