@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"context"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -43,29 +44,37 @@ func NewUniversal[T any](db *gorm.DB) Universal[T] {
 
 // First 通用查询
 func (t *Type[T]) First(out *T, opts ...QueryOption) error {
-	return First(t.db, out, opts...)
+	return FirstWithContext(context.TODO(), t.db, out, opts...)
 }
 
 func First(db *gorm.DB, out any, opts ...QueryOption) error {
+	return FirstWithContext(context.TODO(), db, out, opts...)
+}
+
+func FirstWithContext(ctx context.Context, db *gorm.DB, out any, opts ...QueryOption) error {
 	if len(opts) == 0 {
 		return fmt.Errorf("where is empty")
 	}
 	for _, opt := range opts {
 		db = opt(db)
 	}
-	return db.First(out).Error
+	return db.WithContext(ctx).First(out).Error
 }
 
 // Update 通用更新
 func (t Type[T]) Update(model *T, changeFn func(*T), opts ...QueryOption) error {
-	return Update(t.db, model, changeFn, opts...)
+	return UpdateWithContext(context.TODO(), t.db, model, changeFn, opts...)
 }
 
 func Update[T any](db *gorm.DB, model *T, changeFn func(*T), opts ...QueryOption) error {
+	return UpdateWithContext(context.TODO(), db, model, changeFn, opts...)
+}
+
+func UpdateWithContext[T any](ctx context.Context, db *gorm.DB, model *T, changeFn func(*T), opts ...QueryOption) error {
 	if len(opts) == 0 {
 		return fmt.Errorf("where is empty")
 	}
-	return db.Transaction(func(tx *gorm.DB) error {
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		db := tx.Clauses(clause.Locking{Strength: "UPDATE"})
 		for _, opt := range opts {
 			db = opt(db)
@@ -80,10 +89,14 @@ func Update[T any](db *gorm.DB, model *T, changeFn func(*T), opts ...QueryOption
 
 // Delete 通用删除
 func (t Type[T]) Delete(model *T, opts ...QueryOption) error {
-	return Delete(t.db, model, opts...)
+	return DeleteWithContext(context.TODO(), t.db, model, opts...)
 }
 
 func Delete(db *gorm.DB, model any, opts ...QueryOption) error {
+	return DeleteWithContext(context.TODO(), db, model, opts...)
+}
+
+func DeleteWithContext(ctx context.Context, db *gorm.DB, model any, opts ...QueryOption) error {
 	if len(opts) == 0 {
 		return fmt.Errorf("where is empty")
 	}
@@ -91,7 +104,7 @@ func Delete(db *gorm.DB, model any, opts ...QueryOption) error {
 	for _, opt := range opts {
 		db = opt(db)
 	}
-	return db.Delete(model).Error
+	return db.WithContext(ctx).Delete(model).Error
 }
 
 func (t Type[T]) Create(model *T) error {
@@ -108,7 +121,11 @@ func (t Type[T]) Find(out *[]*T, p Pager, opts ...QueryOption) (int64, error) {
 }
 
 func Find[T any](db *gorm.DB, out *[]*T, p Pager, opts ...QueryOption) (int64, error) {
-	db = db.Model(new(T))
+	return FindWithContext(context.TODO(), db, out, p, opts...)
+}
+
+func FindWithContext[T any](ctx context.Context, db *gorm.DB, out *[]*T, p Pager, opts ...QueryOption) (int64, error) {
+	db = db.Model(new(T)).WithContext(ctx)
 	for _, opt := range opts {
 		db = opt(db)
 	}

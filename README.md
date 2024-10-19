@@ -58,6 +58,8 @@ Goweb 目标是:
 
 ## Makefile
 
+Windows 系统使用 makefile 时，请使用 git bash 终端，不要使用系统默认的 cmd/powershell 终端，否则可能会出现异常情况。
+
 执行 `make` 或 `make help` 来获取更多帮助
 
 在编写 makefile 时，应主动在命令上面增加注释，以 `## <命令>: <描述>` 格式书写，具体参数 Makefile 文件已有命令。其目的是 `make help` 时提供更多信息。

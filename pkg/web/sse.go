@@ -2,14 +2,110 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+// SSE 发送事件
+/*
+	使用案例
+
+	http.HandleFunc("/stream", func(w http.ResponseWriter, r *http.Request) {
+		sse := web.NewSSE(1024, time.Minute)
+
+		go func(){
+			for range 3 {
+				sse.Publish(web.Event{
+					ID:    uuid.New().String(),
+					Event: "ping",
+					Data: []byte("pong"),
+				})
+				time.Sleep(time.Second)
+			}
+			sse.Close()
+		}()
+		sse.ServeHTTP(w, r)
+	})
+
+
+*/
+type SSE struct {
+	Headers map[string]string
+	stream  chan Event
+	timeout time.Duration
+	cancel  context.CancelFunc
+}
+
+type Event struct {
+	ID    string
+	Event string
+	Data  []byte
+}
+
+func NewSSE(length int, timeout time.Duration) *SSE {
+	if length <= 0 {
+		length = 1024
+	}
+	return &SSE{
+		stream:  make(chan Event, length),
+		timeout: timeout,
+	}
+}
+
+func (s *SSE) Publish(v Event) {
+	s.stream <- v
+}
+
+func (s *SSE) Close() {
+	cancel := s.cancel
+	if cancel != nil {
+		s.cancel()
+	}
+	close(s.stream)
+}
+
+func (s *SSE) ServeHTTP(w http.ResponseWriter, _ *http.Request) {
+	rc := http.NewResponseController(w) // nolint
+	_ = rc.SetWriteDeadline(time.Now().Add(s.timeout))
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	for k, v := range s.Headers {
+		w.Header().Set(k, v)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	s.cancel = cancel
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case ev := <-s.stream:
+			if len(ev.Data) == 0 {
+				continue
+			}
+			if len(ev.ID) > 0 {
+				fmt.Fprintf(w, "id: %s\n", ev.ID)
+			}
+			if len(ev.Event) > 0 {
+				fmt.Fprintf(w, "event: %s\n", ev.Event)
+			}
+			fmt.Fprintf(w, "data: %s\n", ev.Data)
+			fmt.Fprint(w, "\n")
+			rc.Flush()
+		}
+	}
+}
 
 type EventMessage struct {
 	id    string
