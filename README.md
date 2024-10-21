@@ -280,6 +280,14 @@ func RegisterVersion(r gin.IRouter, verAPI VersionAPI, handler ...gin.HandlerFun
 }
 ```
 
+## 表迁移
+
+每次程序启动都执行一遍，太慢了。
+
+所以通过 version 表来控制，是否要进行表迁移操作。
+
+当发现数据库表版本已经是最新时，即不执行。通过修改 api/db.go 文件中 dbVersion 控制版本号。
+
 ## 错误处理
 
 core 层导出的函数或 API 层返回的错误，应该返回 web.Error 类型的错误。

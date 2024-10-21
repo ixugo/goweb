@@ -14,9 +14,13 @@ import (
 	"gorm.io/gorm"
 )
 
-var ProviderSet = wire.NewSet(
-	wire.Struct(new(Usecase), "*"), NewHTTPHandler, NewVersion,
-	NewVersionAPI,
+var (
+	ProviderVersionSet = wire.NewSet(NewVersion)
+	ProviderSet        = wire.NewSet(
+		wire.Struct(new(Usecase), "*"),
+		NewHTTPHandler,
+		NewVersionAPI,
+	)
 )
 
 type Usecase struct {
@@ -55,7 +59,7 @@ func NewHTTPHandler(uc *Usecase) http.Handler {
 func NewVersion(db *gorm.DB) *version.Core {
 	vdb := versiondb.NewDB(db)
 	core := version.NewCore(vdb)
-	isOK := core.IsAutoMigrate(dbVersion, dbRemark)
+	isOK := core.IsAutoMigrate(dbVersion)
 	vdb.AutoMigrate(isOK)
 	if isOK {
 		slog.Info("更新数据库表结构")
@@ -63,5 +67,6 @@ func NewVersion(db *gorm.DB) *version.Core {
 			slog.Error("RecordVersion", "err", err)
 		}
 	}
+	orm.EnabledAutoMigrate = isOK
 	return core
 }

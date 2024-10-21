@@ -10,6 +10,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// EnabledAutoMigrate 是否开启自动迁移
+// 每次表迁移耗时，提供此全局变量，程序可根据需要是否迁移
+var EnabledAutoMigrate bool
+
 // Scaner 所有模型内组合的结构体，必须满足该接口
 type Scaner interface {
 	Scan(input interface{}) error

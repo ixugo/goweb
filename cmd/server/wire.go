@@ -14,5 +14,5 @@ import (
 )
 
 func wireApp(bc *conf.Bootstrap, log *slog.Logger) (http.Handler, func(), error) {
-	panic(wire.Build(providerSet, data.ProviderSet, api.ProviderSet))
+	panic(wire.Build(providerSet, data.ProviderSet, api.ProviderVersionSet, api.ProviderSet))
 }

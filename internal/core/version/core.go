@@ -11,23 +11,24 @@ type Storer interface {
 	Add(*Version) error
 }
 
-// Core ...
+// Core 控制程序启动时是否执行表迁移
+// 每次都执行启动太慢了
 type Core struct {
-	Storer    Storer
+	store     Storer
 	IsMigrate *bool
 }
 
 // NewCore ...
 func NewCore(store Storer) *Core {
 	return &Core{
-		Storer: store,
+		store: store,
 	}
 }
 
 // IsAutoMigrate 是否需要进行表迁移?
-func (c *Core) IsAutoMigrate(currentVer, remark string) bool {
+func (c *Core) IsAutoMigrate(currentVer string) bool {
 	var ver Version
-	if err := c.Storer.First(&ver); err != nil {
+	if err := c.store.First(&ver); err != nil {
 		isMigrate := true
 		c.IsMigrate = &isMigrate
 		return isMigrate
@@ -44,7 +45,7 @@ func (c Core) RecordVersion(currentVer, remark string) error {
 	var ver Version
 	ver.Version = currentVer
 	ver.Remark = remark
-	return c.Storer.Add(&ver)
+	return c.store.Add(&ver)
 }
 
 func compareVersionFunc(a, b string, f func(a, b string) bool) bool {
