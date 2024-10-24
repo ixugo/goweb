@@ -4,8 +4,10 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 
 	"gorm.io/gorm"
 )
@@ -84,8 +86,23 @@ type Time struct {
 	time.Time
 }
 
+var _ json.Unmarshaler = &Time{}
+
 // UnmarshalJSON implements json.Unmarshaler.
 func (t *Time) UnmarshalJSON(b []byte) error {
+	l := len(b)
+	s := unsafe.String(unsafe.SliceData(b), l)
+	if v, err := strconv.Atoi(s); err == nil {
+		if l == 10 {
+			*t = Time{time.Unix(int64(v), 0)}
+		} else if l == 13 {
+			*t = Time{time.UnixMilli(int64(v))}
+		} else {
+			return json.Unmarshal(b, &t.Time)
+		}
+		return nil
+	}
+
 	date, err := time.ParseInLocation(time.DateTime, strings.Trim(string(b), `"`), time.Local)
 	if err == nil {
 		t.Time = date
