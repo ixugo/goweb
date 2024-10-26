@@ -1,7 +1,8 @@
 [Server]
   [Server.HTTP]
-    port = 8080
+    Port = 8080
     JwtSecret = ""
+    Timeout = "60s"
 
     [Server.HTTP.Pprof]
       Enabled = true

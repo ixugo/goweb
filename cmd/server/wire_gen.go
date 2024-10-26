@@ -17,8 +17,7 @@ import (
 // Injectors from wire.go:
 
 func wireApp(bc *conf.Bootstrap, log *slog.Logger) (http.Handler, func(), error) {
-	bool2 := GetBuildRelease()
-	db, err := data.SetupDB(bc, log, bool2)
+	db, err := data.SetupDB(bc, log)
 	if err != nil {
 		return nil, nil, err
 	}

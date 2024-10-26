@@ -25,6 +25,11 @@ Goweb 目标是:
 
 支持[代码自动生成](github.com/ixugo/gowebx)
 
+## 引用文章
+
+[Google API Design Guide](https://google-cloud.gitbook.io/api-design-guide)
+
+
 
 ## 目录说明
 
