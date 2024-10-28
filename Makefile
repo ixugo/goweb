@@ -74,7 +74,7 @@ vendor:
 	go mod vendor
 
 # ==================================================================================== #
-# BUILD
+# VERSION
 # ==================================================================================== #
 
 # 版本号规则说明
@@ -111,49 +111,6 @@ VERSION := v$(GIT_VERSION_MAJOR).$(GIT_VERSION_MINOR).$(FINAL_PATCH)
 # test:
 # 	@echo ">>>${RECENT_TAG}"
 
-
-# .PHONY: build
-# BUILD_LOCAL_DIR := ./build/local
-# build:
-# 	@echo -n 'Building local...'
-# 	@rm -rf BUILD_LOCAL_DIR
-# 	@go build -ldflags="-s -w -X main.build=local -X main.buildVersion=$(VERSION)" -o=$(BUILD_LOCAL_DIR)/app ./cmd/server
-# 	@tar -czf $(BUILD_LOCAL_DIR)/$(MODULE_NAME)-$(VERSION)-$(HASH_AND_DATE).tar.gz $(BUILD_LOCAL_DIR)/app
-# 	@echo 'OK'
-
-
-## build/clean: 清理构建缓存目录
-.PHONY: build/clean
-build/clean:
-	@rm -rf ./build/*
-
-
-## build/linux: 构建 linux 应用
-.PHONY: build/linux
-BUILD_LINUX_AMD64_DIR := ./build/linux_amd64
-build/linux:
-	@echo -n 'Building linux...'
-	@rm -rf BUILD_LINUX_AMD64_DIR
-	@GOOS=linux GOARCH=amd64 go build \
-		-trimpath \
-		-ldflags="-s -w -X main.buildVersion=$(VERSION) -X main.gitBranch=$(BRANCH_NAME) -X main.gitHash=$(HASH_AND_DATE) -X main.buildTimeAt=$(date +%s) -X main.release=true" \
-		-o=$(BUILD_LINUX_AMD64_DIR)/bin ./cmd/server
-	@echo 'OK'
-
-## build/windows: 构建 windows 应用
-.PHONY: build/windows
-BUILD_WINDOWS_AMD64_DIR := ./build/windows_amd64
-build/windows:
-	@echo -n 'Building windows...'
-	@rm -rf BUILD_WINDOWS_AMD64_DIR
-	@GOOS=windows GOARCH=amd64 go build \
-		-trimpath \
-		-ldflags="-s -w -X main.buildVersion=$(VERSION) -X main.gitBranch=$(BRANCH_NAME) -X main.gitHash=$(HASH_AND_DATE) -X main.buildTimeAt=$(date +%s) -X main.release=true" \
-		-o=$(BUILD_WINDOWS_AMD64_DIR)/bin ./cmd/server
-	@echo 'OK'
-
-
-
 ## info: 查看构建版本相关信息
 .PHONY: info
 info:
@@ -164,7 +121,52 @@ info:
 	@echo "support $$(go tool dist list | grep amd64 | grep linux)"
 
 
+# ==================================================================================== #
+# BUILD
+# ==================================================================================== #
+
+BUILD_DIR_ROOT := ./build
+GOOS = $(shell go env GOOS)
+GOARCH = $(shell go env GOARCH)
 IMAGE_NAME := $(MODULE_NAME):latest
+
+## build/clean: 清理构建缓存目录
+.PHONY: build/clean
+build/clean:
+	@rm -rf $(BUILD_DIR_ROOT)/*
+
+## build/local: 构建本地应用
+.PHONY: build/local
+build/local:
+	$(eval dir := $(BUILD_DIR_ROOT)/$(GOOS)_$(GOARCH))
+	@echo 'Building $(VERSION) $(dir)...'
+	@rm -rf $(dir)
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) go build \
+		-trimpath \
+		-ldflags="-s -w \
+			-X main.buildVersion=$(VERSION) \
+			-X main.gitBranch=$(BRANCH_NAME) \
+			-X main.gitHash=$(HASH_AND_DATE) \
+			-X main.buildTimeAt=$(date +%s) \
+			-X main.release=true \
+			" -o=$(dir)/bin ./cmd/server
+	@echo '>>> OK'
+
+## build/linux: 构建 linux 应用
+.PHONY: build/linux
+BUILD_LINUX_AMD64_DIR := ./build/linux_amd64
+build/linux:
+	$(eval GOARCH := amd64)
+	$(eval GOOS := linux)
+	@make build/local GOOS=$(GOOS) GOARCH=$(GOARCH)
+
+## build/windows: 构建 windows 应用
+.PHONY: build/windows
+BUILD_WINDOWS_AMD64_DIR := ./build/windows_amd64
+build/windows:
+	$(eval GOARCH := amd64)
+	$(eval GOOS := windows)
+	@make build/local GOOS=$(GOOS) GOARCH=$(GOARCH)
 
 docker/build:
 	@docker buildx build --force-rm=true --platform linux/amd64 -t $(IMAGE_NAME) .
