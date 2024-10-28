@@ -6,96 +6,94 @@
 <p align="center">
     <a href="https://github.com/ixugo/goweb/releases"><img src="https://img.shields.io/github/v/release/ixugo/goweb?include_prereleases" alt="Version"/></a>
     <a href="https://github.com/ixugo/goweb/blob/master/LICENSE.txt"><img src="https://img.shields.io/dub/l/vibe-d.svg" alt="License"/></a>
-	<a href="https://gin-gonic.com"><img width=30px  src="https://avatars.githubusercontent.com/u/7894478?s=48&v=4" alt="GIN"/></a>
+	<a href="https://gin-gonic.com"><img width=30px src="https://avatars.githubusercontent.com/u/7894478?s=48&v=4" alt="GIN"/></a>
     <a href="https://gorm.io"><img width=70px src="https://gorm.io/gorm.svg" alt="GORM"/></a>
 
 </p>
 
-# 企业 REST API 模板
+[English](./README.md) | [简体中文](./README_zh.md)
 
-这是一个专注于 REST API 的完整 CURD 解决方案。
+# Enterprise REST API Template
 
-Goweb 目标是:
+This is a complete CRUD solution focused on REST API.
 
-+ 整洁架构，适用于中小型项目
-+ 提供积木套装，快速开始项目，专注于业务开发
-+ 令项目更简单，令研发心情更好
+The goal of Goweb is to:
 
-如果你觉得以上描述符合你的需求，那就基于此模板开始吧。此项目会源源不断补充如何充分使用的文档指南。
++ Provide a clean architecture suitable for small and medium-sized projects.
++ Provide a modular structure for quickly starting a project, focusing on business development.
++ Simplify projects, making development more efficient and enjoyable.
 
-支持[代码自动生成](github.com/ixugo/gowebx)
+If this aligns with your needs, you can start your project based on this template. This project will continually provide documentation to guide effective usage.
 
-## 引用文章
+Supports [code generation](github.com/ixugo/gowebx).
+
+## References
 
 [Google API Design Guide](https://google-cloud.gitbook.io/api-design-guide)
 
-
-
-## 目录说明
-
+## Directory Structure
 
 ```bash
 .
-├── cmd						可执行程序
+├── cmd                     Executable program
 │   └── server
-├── configs					配置文件
-├── docs					设计文档/用户文档
-├── internal					私有业务
-│   ├── conf					配置模型
-│   ├── core					业务领域
-│   │   └── version				实际业务
+├── configs                 Configuration files
+├── docs                    Design/User documentation
+├── internal                Private business
+│   ├── conf                Configuration models
+│   ├── core                Business domain
+│   │   └── version         Actual business
 │   │       └── store
-│   │           └── versiondb 		数据库操作
-│   ├── data					数据库初始化
+│   │           └── versiondb Database operations
+│   ├── data                Database initialization
 │   └── web
-│       └── api					RESTful API
-└── pkg						依赖库
+│       └── api             RESTful API
+└── pkg                     Dependencies
 ```
 
+## Project Description
 
-## 项目说明
+1. Components strongly relied upon by the program will trigger a panic on error, so that issues are resolved as quickly as possible.
 
-1. 程序启动强依赖的组件，发生异常时主动 panic，尽快崩溃尽快解决错误。
+2. The core directory represents the business domain, containing domain models and domain business functions.
 
-2. core 为业务领域，包含领域模型，领域业务功能
+3. The store is the database operation module, dependent on models with dependency inversion towards the core, avoiding the need to define models at each layer.
 
-3. store 为数据库操作模块，需要依赖模型，此处依赖反转 core，避免每一层都定义模型。
-
-4. api 层的入参/出参，可以正向依赖 core 层定义模型，参数模型以 `Input/Output` 来简单区分入参出数。
+4. Input/output parameters in the API layer may directly depend on models defined in the core layer, with input and output models distinguished by appending `Input/Output` to the model names.
 
 ## Makefile
 
-Windows 系统使用 makefile 时，请使用 git bash 终端，不要使用系统默认的 cmd/powershell 终端，否则可能会出现异常情况。
+For Windows systems, please use the Git Bash terminal to run the Makefile instead of the default cmd/powershell terminal, as issues may arise.
 
-执行 `make` 或 `make help` 来获取更多帮助
+Use `make` or `make help` to get more help.
 
-在编写 makefile 时，应主动在命令上面增加注释，以 `## <命令>: <描述>` 格式书写，具体参数 Makefile 文件已有命令。其目的是 `make help` 时提供更多信息。
+When writing a Makefile, add comments above each command in the format `## <command>: <description>` for readability, with available parameters provided in the Makefile. The goal is to make `make help` output more informative.
 
-makefile 中提供了一些默认的操作便于快速编写
+Some default operations are provided in the Makefile to assist with rapid development.
 
-`make confirm` 用于确认下一步
+`make confirm` confirms the next step.
 
-`make title content=标题`  用于重点突出输出标题
+`make title content=Title` highlights a title in the output.
 
-`make info` 获取构建版本相关信息
+`make info` fetches build version information.
 
-**makefile 构建的版本号规则说明**
+**Versioning Rules in the Makefile**
 
-1. 版本号使用 Git tag，格式为 v1.0.0。
+1. Git tags are used for versioning, in the format v1.0.0.
 
-2. 如果当前提交没有 tag，找到最近的 tag，计算从该 tag 到当前提交的提交次数。例如，最近的 tag 为 v1.0.1，当前提交距离它有 10 次提交，则版本号为 v1.0.11（v1.0.1 + 10 次提交）。
+2. If the current commit lacks a tag, the closest tag is found, and the number of commits from that tag is calculated. For example, if the latest tag is v1.0.1, and there have been 10 commits since, the version number becomes v1.0.11 (v1.0.1 + 10 commits).
 
-3. 如果没有任何 tag，则默认版本号为 v0.0.0，后续提交次数作为版本号的次版本号。
+3. If there are no tags, the default version is v0.0.0, with the minor version incremented based on the number of commits.
 
-## 快速开始
+## Quick Start
 
-业务说明:
+Example business logic:
 
-假设我们要做一个版本管理的业务，curd 步骤如下:
+Assume we want to implement version management. The CRUD steps are as follows:
 
-在 「internal」-「core」 创建 「version」 目录，创建「model.go」写入领域模型，该模型为数据库表结构映射。
+Under "internal" - "core," create the "version" directory, then create `model.go` and define the domain model representing the database table structure.
 
-创建「core.go」 写入如下内容
+Create `core.go` and add the following content:
 
 ```go
 package version
@@ -105,26 +103,26 @@ import (
 	"strings"
 )
 
-// Storer 依赖反转的数据持久化接口
+// Storer Interface for dependency inversion in data persistence.
 type Storer interface {
 	First(*Version) error
 	Add(*Version) error
 }
 
-// Core 业务对象
+// Core Business object
 type Core struct {
 	Storer    Storer
 }
 
-// NewCore 创建业务对象
+// NewCore Creates a business object.
 func NewCore(store Storer) *Core {
 	return &Core{
 		Storer: store,
 	}
 }
 
-// IsAutoMigrate 是否需要进行表迁移
-// 判断硬编码在代码中的数据库表版本号，与数据库存储的版本号做对比
+// IsAutoMigrate Checks if table migration is required
+// Compares the hard-coded database table version with the stored version.
 func (c *Core) IsAutoMigrate(currentVer, remark string) bool {
 	var ver Version
 	if err := c.Storer.First(&ver); err != nil {
@@ -161,7 +159,7 @@ func versionToStr(str string) string {
 }
 ```
 
-创建 「store/versiondb」 目录，创建「db.go」 文件写入
+Under "store/versiondb," create the `db.go` file with the following content:
 
 ```go
 type DB struct {
@@ -172,7 +170,7 @@ func NewDB(db *gorm.DB) DB {
 	return DB{db: db}
 }
 
-// AutoMigrate 表迁移
+// AutoMigrate Table migration.
 func (d DB) AutoMigrate(ok bool) DB {
 	if !ok {
 		return d
@@ -194,7 +192,7 @@ func (d DB) Add(v *version.Version) error {
 }
 ```
 
-在 API 层做依赖注入，对 「web/api/provider.go」 写入函数，往 Usecase 中注入业务对象
+In the API layer, inject dependencies by adding a function in `web/api/provider.go` to inject the business object into Usecase:
 
 ```go
 var ProviderSet = wire.NewSet(
@@ -209,7 +207,7 @@ func NewVersion(db *gorm.DB) *version.Core {
 	isOK := core.IsAutoMigrate(dbVersion, dbRemark)
 	vdb.AutoMigrate(isOK)
 	if isOK {
-		slog.Info("更新数据库表结构")
+		slog.Info("Updating database schema")
 		if err := core.RecordVersion(dbVersion, dbRemark); err != nil {
 			slog.Error("RecordVersion", "err", err)
 		}
@@ -218,10 +216,10 @@ func NewVersion(db *gorm.DB) *version.Core {
 }
 ```
 
-在 API 层新建「version.go」文件，写入
+Create a new `version.go` file in the API layer with the following content:
 
 ```go
-// version 业务函数命名空间
+// VersionAPI Namespace for version business functions.
 type VersionAPI struct {
 	ver *version.Core
 }
@@ -229,7 +227,7 @@ type VersionAPI struct {
 func NewVersionAPI(ver *version.Core) VersionAPI {
 	return VersionAPI{ver: ver}
 }
-// registerVersion 向路由注册业务接口
+// registerVersion Registers business interface with the router.
 func registerVersion(r gin.IRouter, verAPI VersionAPI, handler ...gin.HandlerFunc) {
 	ver := r.Group("/version", handler...)
 	ver.GET("", web.WarpH(verAPI.getVersion))
@@ -240,88 +238,85 @@ func (v VersionAPI) getVersion(_ *gin.Context, _ *struct{}) (any, error) {
 }
 ```
 
+## FAQ
 
-## 常见问题
+> Why not define models in each layer separately?
 
-> 为什么不在每一层分别定义模型?
+This is a trade-off between development efficiency and decoupling, balancing code readability and efficiency.
 
-开发效率与解耦的取舍，在代码通俗易懂和效率之间取的平衡。
+> Where should API layer parameter models and table mapping models be defined?
 
-> 那 api 层参数模型，表映射模型到底应该定义在哪里?
+Understanding the dependency relationships between layers is crucial. The API directly depends on the core, while the DB layer is inverted to depend on the core. Thus, domain models are defined in the core, and input/output parameter models can also be defined in the core. If they are unused in the core, defining them in the API layer is fine too.
 
-要清楚各层之间的依赖关系，api 直接依赖 core，db 依赖反转 core。故而领域模型定义在 core 中，api 的入参和出参也可以定义在 core，当然 core 层用不上的结构体，定义在 API 层也无妨。
+> Why does the API layer directly depend on the core layer rather than an interface?
 
-> 为什么 api 层直接依赖 core 层，而不是依赖接口?
+Interfaces aim to decouple, but in practice, it is more common to replace the API layer than the core layer.
 
-接口的目的是为了解耦，在实际开发过程中，更多是替换 api 层，而不是替换 core 层。
+The API only retrieves parameters and returns response parameters, doing the minimum necessary to facilitate the transition from HTTP to GRPC.
 
-API 只做参数获取，返回响应参数，只做最少的事情，方便从 HTTP 快速过度的 GRPC。
+Design for the future, but program for the present. Increasing development efficiency now allows for a better approach in the future when needed.
 
-面向未来设计，面向当下编程，先提高搬砖效率，等未来需要的那天会有更好的方式重构。
+> Why is the DB layer inverted to depend on the core?
 
-> 为什么 db 依赖反转 core?
+Data persistence is not independent; it serves the business. That is, persistence serves the
 
-数据持久化不是独立的，它为业务而服务。即持久化服务于业务，依赖于业务。
+ business and depends on it.
 
-通过依赖反转，业务可以在中间穿插 redis cache 等其它 db 。
+Through dependency inversion, other databases, such as Redis cache, can be inserted between business operations.
 
-> 为什么入参/出参模型以  Input/Output 单词结尾
+> Why suffix input/output models with `Input/Output`?
 
-约定大于配置，类似有些项目以 Request/Response 单词结尾，只是为了有一个统一的，大家都明确的参数。
+Convention is preferable to configuration. Some projects use `Request/Response` as suffixes to standardize parameter names.
 
-当然，有可能出参也是入参，你可以定义别名，也可以直接使用。
+Of course, output parameters can also serve as input, and you can define an alias or use them directly.
 
-很多时候，我们都想明确自己在做什么，为什么这样做，这个「常见问题」希望能提供一点解惑思路。
+Frequently, we want clarity on what we’re doing and why. This FAQ aims to offer some insight.
 
-> 如何为 goweb 编写业务插件?
+> How to write business plugins for Goweb?
 
 ```go
-// RegisterVersion 有一些通用的业务，它们被其它业务依赖，属于业务的基层模块，例如表版本控制，字典，验证码，定时任务，用户管理等等。
-// 约定以 Register<Core> 方式编写函数，注入 gin 路由，命名空间，中间件三个参数。
-// 具体可以参考项目代码
+// RegisterVersion Some general business functions are depended upon by other business functions, such as table version control, dictionary, verification code, scheduled tasks, user management, etc.
+// Conventionally, write functions in the format Register<Core>, injecting three parameters: gin router, namespace, and middleware.
+// Refer to project code for specifics.
 func RegisterVersion(r gin.IRouter, verAPI VersionAPI, handler ...gin.HandlerFunc) {
 	ver := r.Group("/version", handler...)
 	ver.GET("", web.WarpH(verAPI.getVersion))
 }
 ```
 
-## 表迁移
+## Table Migration
 
-每次程序启动都执行一遍，太慢了。
+Executing table migration on every program start is too slow.
 
-所以通过 version 表来控制，是否要进行表迁移操作。
+Therefore, migration control is implemented through the version table, so migration only occurs when the database table version is outdated. Modify the `dbVersion` in api/db.go to control the version number.
 
-当发现数据库表版本已经是最新时，即不执行。通过修改 api/db.go 文件中 dbVersion 控制版本号。
+## Error Handling
 
-## 错误处理
+Errors returned from core functions or the API layer should be of type `web.Error`.
 
-core 层导出的函数或 API 层返回的错误，应该返回 web.Error 类型的错误。
-
-在封装的 web.WarpH 中，会正确记录错误到日志并返回给前端。
+In the web.WarpH wrapper, errors are properly logged and returned to the frontend.
 
 ```go
 type Error struct {
-	reason  string   // 错误原因
-	msg     string   // 错误信息，用户可读
-	details []string // 错误扩展，开发可读
+	reason  string   // Reason for the error
+	msg     string   // User-readable message
+	details []string // Developer-readable error details
 }
 ```
 
-reason 是预定义的错误原因，以英文单词定义，同时用于区分返回的 http response status code。
+`reason` is a predefined error reason, defined in English and used to differentiate HTTP response status codes.
 
-msg 是展示给用户看的内容。
+`msg` is the user-facing error message.
 
-details 仅开发模式使用，将完整的错误内容暴露给开发者，方便前后端开发调试。
+`details` are displayed in developer mode to provide complete error content for debugging purposes.
 
-## 自定义配置目录
+## Custom Configuration Directory
 
-默认配置目录为可执行文件同目录下的 configs，也可以指定其它配置目录
+The default configuration directory is `configs`, located in the same directory as the executable. You can also specify other configuration directories.
 
 `./bin -conf ./configs`
 
-
-
-## 项目主要依赖
+## Main Project Dependencies
 
 + gin
 + gorm
