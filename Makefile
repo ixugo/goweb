@@ -147,7 +147,7 @@ build/local:
 			-X main.buildVersion=$(VERSION) \
 			-X main.gitBranch=$(BRANCH_NAME) \
 			-X main.gitHash=$(HASH_AND_DATE) \
-			-X main.buildTimeAt=$(date +%s) \
+			-X main.buildTimeAt=$(shell date +%s) \
 			-X main.release=true \
 			" -o=$(dir)/bin ./cmd/server
 	@echo '>>> OK'
