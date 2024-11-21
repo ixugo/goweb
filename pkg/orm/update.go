@@ -75,12 +75,14 @@ func UpdateWithContext[T any](ctx context.Context, db *gorm.DB, model *T, change
 		return fmt.Errorf("where is empty")
 	}
 	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		for _, opt := range opts {
-			tx = opt(tx)
-		}
-		tx = tx.Clauses(clause.Locking{Strength: "UPDATE"})
-		if err := tx.First(model).Error; err != nil {
-			return err
+		{
+			tx := tx.Clauses(clause.Locking{Strength: "UPDATE"})
+			for _, opt := range opts {
+				tx = opt(tx)
+			}
+			if err := tx.First(model).Error; err != nil {
+				return err
+			}
 		}
 		changeFn(model)
 		return tx.Save(model).Error
