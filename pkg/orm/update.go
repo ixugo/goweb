@@ -53,7 +53,7 @@ func First(db *gorm.DB, out any, opts ...QueryOption) error {
 
 func FirstWithContext(ctx context.Context, db *gorm.DB, out any, opts ...QueryOption) error {
 	if len(opts) == 0 {
-		return fmt.Errorf("where is empty")
+		panic("where is empty")
 	}
 	for _, opt := range opts {
 		db = opt(db)
@@ -72,7 +72,7 @@ func Update[T any](db *gorm.DB, model *T, changeFn func(*T), opts ...QueryOption
 
 func UpdateWithContext[T any](ctx context.Context, db *gorm.DB, model *T, changeFn func(*T), opts ...QueryOption) error {
 	if len(opts) == 0 {
-		return fmt.Errorf("where is empty")
+		panic("where is empty")
 	}
 	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		{
@@ -87,6 +87,25 @@ func UpdateWithContext[T any](ctx context.Context, db *gorm.DB, model *T, change
 		changeFn(model)
 		return tx.Save(model).Error
 	})
+}
+
+func UpdateWithSession[T any](tx *gorm.DB, model *T, fn func(*T) error, opts ...QueryOption) error {
+	if len(opts) == 0 {
+		panic("where is empty")
+	}
+	{
+		tx := tx.Clauses(clause.Locking{Strength: "UPDATE"})
+		for _, opt := range opts {
+			tx = opt(tx)
+		}
+		if err := tx.First(model).Error; err != nil {
+			return err
+		}
+	}
+	if err := fn(model); err != nil {
+		return err
+	}
+	return tx.Save(model).Error
 }
 
 // Delete 通用删除
