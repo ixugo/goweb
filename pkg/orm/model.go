@@ -115,32 +115,50 @@ func Now() Time {
 	return Time{time.Now()}
 }
 
+// ParseTimeToLayout 解析字符串对应的 layout
+// 仅支持 年-月-日 或 年/月/日 等这种格式
+func ParseTimeToLayout(value string) string {
+	var layout string
+	// 拼凑日期
+	if len(value) >= 7 {
+		layout += fmt.Sprintf("2006%c01%c02", value[4], value[7])
+	}
+	// 拼凑时间
+	if len(value) >= 19 {
+		layout += " 15:04:05"
+	}
+	if len(value) > 19 {
+		suffix := value[19:]
+		var rear string
+		for _, c := range suffix {
+			if c == '.' {
+				rear += "."
+			} else if c == '+' || c == '-' {
+				rear += "-07:00"
+				break
+			} else {
+				rear += "9"
+			}
+		}
+		return layout + rear
+	}
+	return layout
+}
+
 // Scan implements scaner
 func (t *Time) Scan(input interface{}) error {
 	var date time.Time
 	switch value := input.(type) {
 	case time.Time:
-		date = value.In(time.FixedZone("CST", 8*60*60))
+		date = value
+	// 兼容 sqlite，其存储是字符串
 	case string:
-		layout := "2006-01-02 15:04:05"
-		aidx := strings.LastIndex(value, ".")
-		bidx := strings.LastIndex(value, "+")
-		var rear string
-		if bidx != -1 {
-			rear = "-07:00"
-		}
-		if aidx != -1 {
-			if bidx == -1 {
-				bidx = len(value)
-			}
-			rear = "." + strings.Repeat("9", bidx-aidx) + rear
-		}
-		layout += rear
+		layout := ParseTimeToLayout(value)
 		d, err := time.Parse(layout, value)
 		if err != nil {
 			return fmt.Errorf("pkg: can not convert %v to timestamptz layout[%s]", input, layout)
 		}
-		date = d.In(time.FixedZone("CST", 8*60*60))
+		date = d
 	default:
 		return fmt.Errorf("pkg: can not convert %v to timestamptz", input)
 	}
