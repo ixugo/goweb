@@ -2,10 +2,11 @@ package orm
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"log/slog"
-	"math/rand/v2"
+	"math/big"
 	"regexp"
 	"strconv"
 	"strings"
@@ -224,9 +225,11 @@ func WithCreatedAt(startAt, endAt int64) Option {
 
 func GenerateRandomString(length int) string {
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = letterBytes[rand.N(len(letterBytes))]
+	lettersLength := big.NewInt(int64(len(letterBytes)))
+	result := make([]byte, length)
+	for i := 0; i < length; i++ {
+		idx, _ := rand.Int(rand.Reader, lettersLength)
+		result[i] = letterBytes[idx.Int64()]
 	}
-	return string(b)
+	return string(result)
 }
