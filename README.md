@@ -23,9 +23,17 @@ The goal of Goweb is to:
 + Provide a modular structure for quickly starting a project, focusing on business development.
 + Simplify projects, making development more efficient and enjoyable.
 
-If this aligns with your needs, you can start your project based on this template. This project will continually provide documentation to guide effective usage.
+If you think the above description fits your needs, then let's get started quickly.
 
 Supports [code generation](github.com/ixugo/gowebx).
+
+## Quick start
+
+1. Golang version >= 1.23.0
+2. `git clone github.com/ixugo/goweb`
+3. `cd goweb && go run cmd/server/.`
+4. Open a new terminal and access `curl http://localhost:8080/health`
+
 
 ## References
 

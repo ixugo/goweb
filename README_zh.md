@@ -23,9 +23,17 @@ Goweb 目标是:
 + 提供积木套装，快速开始项目，专注于业务开发
 + 令项目更简单，令研发心情更好
 
-如果你觉得以上描述符合你的需求，那就基于此模板开始吧。此项目会源源不断补充如何充分使用的文档指南。
+如果你觉得以上描述符合你的需求，那就快速开始吧。
 
 支持[代码自动生成](github.com/ixugo/gowebx)
+
+## 快速开始
+
+1. Golang 版本 >= 1.23.0
+2. `git clone github.com/ixugo/goweb`
+3. `cd goweb && go run cmd/server/.`
+4. 新开一个终端访问 `curl http://localhost:8080/health`
+
 
 ## 引用文章
 
