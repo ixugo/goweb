@@ -69,6 +69,119 @@ Supports [code generation](github.com/ixugo/gowebx).
 
 4. Input/output parameters in the API layer may directly depend on models defined in the core layer, with input and output models distinguished by appending `Input/Output` to the model names.
 
+## Request Parameter Wrapping
+
+This project uses GIN as the web framework, and the route functions need to implement `gin.HandlerFunc`. The first issue encountered when implementing API functions is binding parameters. Almost every function involves deserialization, and the function heads are cluttered with `ctx.ShouldBindJSON` and similar code.
+
+To follow the DRY (Don't Repeat Yourself) design principle, we reduce repetitive code to improve maintainability and reusability. The project wraps `web.WarpH`, which returns a `gin.HandlerFunc`. The parameters for `web.WarpH` are similar to gRPC, with a signature like `func(ctx *gin.Context, in *struct{}) (*Output, error)`.
+
+`WarpH` internally recognizes POST/PUT/DELETE/PATCH requests and binds the Request Body, while GET requests bind Request URL parameters.
+
+The second parameter of the input must be a pointer, and `*struct{}` is used when no parameters need to be bound. When defining the structure, especially note that the struct tags should be `json` or `form`. More details are available in the GIN framework’s parameter binding documentation.
+
++ `json`: Can bind request body parameters.
++ `form`: Can bind query parameters.
+
+The first parameter of the return value is the actual response body content, and it is recommended to avoid using `any`. The type can be either a value or a pointer, providing more flexibility.
+
+When parameters exist in multiple places, such as route parameters, query parameters, and request body parameters, you can implement a new `web.WarpH2` or directly implement `gin.HandlerFunc`.
+
+Here are two code examples:
+
+
+```go
+func findUser(ctx *gin.Context) {
+	var in findUserInput
+	if err := ctx.ShouldBindQuery(&in);err!=nil {
+		ctx.JSON(...)
+		return
+	}
+	out,err := serviceFunc(in)
+	// ....
+}
+```
+
+```go
+func findUsers(ctx *gin.Context, in *Input) (*Output, error) {
+	return serviceFunc(in)
+}
+```
+
+## Response Parameter Wrapping
+
+Clearly defining the response type can make the code easier to understand. The goal is to improve code readability and maintainability by paying attention to more details.
+
+The web.WarpH wrapper defaults to returning a response with the application/json content type.
+
+During development, new colleagues may forget the return statement when implementing gin.HandlerFunc. Using web.WarpH ensures that the return statement is not omitted.
+
+Here are two code examples:
+
+```go
+func findUsers(ctx *gin.Context) {
+	// Maybe out is obtained from the business layer
+	// At this point, you need to find the response body inside the function
+	out, err := serviceFunc()
+	if err != nil {
+		ctx.JSON(...)
+		return
+	}
+	ctx.JSON(out)
+}
+```
+
+```go
+func findUsers(ctx *gin.Context, in *Input) (*Output, error) {
+	return serviceFunc(in)
+}
+```
+
+## Error Handling
+
+From the above code, we can see that errors are directly returned. But doesn’t this expose the underlying error information to the user? And what about the HTTP status code for errors?
+
+In fact, `web.Warn` does some additional work. For example, when there is an error during binding, it can pinpoint the specific error cause: Is the type wrong? Which property is incorrect? For example, when responding, we can extract information from the `err` and return the corresponding HTTP status code. Let’s take a closer look at error handling.
+
+`pkg/web` is an HTTP-related handling package, which includes middleware, response handling, error handling, authentication, logging, rate limiting, metrics, performance analysis, input validation, and more.
+
+We define a custom `Error` type, where `reason` represents the error cause. Some third-party APIs also use a `Code`.
+
+When designing the project, we considered that status codes might be hard to interpret, for example, error `10020`—what does that error mean? Therefore, we defined `reason`, which should describe the error cause in a concise, camel-case English format. If you just want to use the status code, then use the HTTP StatusCode.
+
+`msg` should be an error description in the developer's native language, while `reason` is used internally by the program, and `msg` is for user-friendly messaging. `details` is an extension of the error, providing additional information for developers. It can describe solutions to the error, provide documentation, give more detailed error information, or even expose lower-level errors.
+
+In front-end and back-end separated projects, when the front-end encounters an error, they often need to ask the back-end what happened. Through `details`, the front-end can reduce the number of inquiries.
+
+In the `web.WarpH` wrapper, errors are actually handled by calling `web.Fail(err)`. This method determines which HTTP status code should be returned based on the `reason`. Developers can implement more HTTP status code extensions in the `pkg/web/error.go` file through the `HTTPCode()` function. By default, three status codes are provided: 200, 400, and 401.
+
+`details` should only be visible in development mode. You can set the release mode using `web.SetRelease()`, in which case `details` will not be included in the HTTP response body.
+
+```go
+type Error struct {
+	reason  string   // 错误原因
+	msg     string   // 错误信息，用户可读
+	details []string // 错误扩展，开发可读
+}
+```
+
+Functions exported from the core layer or errors returned from the API layer should return errors of type `web.Error`.
+
+In the wrapped `web.WarpH`, errors are correctly logged and returned to the front-end.
+
+```go
+func findUser(in *Input) (*Output, error) {
+	// Database operation error
+	if err != nil {
+		return nil, web.ErrDB.Msg() // The response type is a DB layer error, and the Msg function can modify the user-friendly message
+	}
+	// Business logic error
+	if err != nil {
+		return nil, web.ErrServer.Withf("err[%s] ....", err) // Withf can write details to provide more hints to the developer
+	}
+}
+```
+
+
 ## Makefile
 
 For Windows systems, please use the Git Bash terminal to run the Makefile instead of the default cmd/powershell terminal, as issues may arise.
@@ -298,25 +411,6 @@ Executing table migration on every program start is too slow.
 
 Therefore, migration control is implemented through the version table, so migration only occurs when the database table version is outdated. Modify the `dbVersion` in api/db.go to control the version number.
 
-## Error Handling
-
-Errors returned from core functions or the API layer should be of type `web.Error`.
-
-In the web.WarpH wrapper, errors are properly logged and returned to the frontend.
-
-```go
-type Error struct {
-	reason  string   // Reason for the error
-	msg     string   // User-readable message
-	details []string // Developer-readable error details
-}
-```
-
-`reason` is a predefined error reason, defined in English and used to differentiate HTTP response status codes.
-
-`msg` is the user-facing error message.
-
-`details` are displayed in developer mode to provide complete error content for debugging purposes.
 
 ## Custom Configuration Directory
 
