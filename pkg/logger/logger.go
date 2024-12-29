@@ -173,9 +173,7 @@ func SetupSlog(cfg Config) (*slog.Logger, func()) {
 	log := slog.New(
 		zapslog.NewHandler(
 			NewJSONLogger(cfg.Debug, r).Core(),
-			&zapslog.HandlerOptions{
-				AddSource: cfg.Debug,
-			},
+			zapslog.WithCaller(cfg.Debug),
 		),
 	)
 	if cfg.ID != "" {
