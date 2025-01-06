@@ -48,7 +48,7 @@ func main() {
 	bc.BuildVersion = buildVersion
 
 	// 初始化日志
-	logDir := filepath.Join(system.GetCWD(), bc.Log.Dir)
+	logDir := filepath.Join(system.Getwd(), bc.Log.Dir)
 	log, clean := logger.SetupSlog(logger.Config{
 		Dir:          logDir,                            // 日志地址
 		Debug:        bc.Debug,                          // 服务级别Debug/Release

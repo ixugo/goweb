@@ -42,5 +42,5 @@ func getDialector(dsn string) (gorm.Dialector, bool) {
 			DSN:        dsn,
 		}), false
 	}
-	return sqlite.Open(filepath.Join(system.GetCWD(), dsn)), true
+	return sqlite.Open(filepath.Join(system.Getwd(), dsn)), true
 }

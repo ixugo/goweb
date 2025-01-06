@@ -5,22 +5,18 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"sync"
 )
 
-// 获取可执行文件绝对路径
-var GetCWD = Executable()
+// Executable 获取可执行文件绝对路径
+func Executable() string {
+	bin, _ := os.Executable()
+	return filepath.Dir(bin)
+}
 
-func Executable() func() string {
-	var once sync.Once
-	var dir string
-	return func() string {
-		once.Do(func() {
-			bin, _ := os.Executable()
-			dir = filepath.Dir(bin)
-		})
-		return dir
-	}
+// Getwd 获取工作目录
+func Getwd() string {
+	dir, _ := os.Getwd()
+	return dir
 }
 
 // GetDirSize 获取目录大小，单位 Bit
@@ -38,45 +34,59 @@ func GetDirSize(path string) (int64, error) {
 	return size, err
 }
 
-func CleanOldFiles(path string, count int) error {
-	var files []os.FileInfo
-	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
-		if info.IsDir() {
-			return nil
-		}
+type FileInfo struct {
+	os.FileInfo
+	Path string
+}
+
+// GlobFiles 按照升序排列所有文件
+func GlobFiles(path string) ([]FileInfo, error) {
+	files := make([]FileInfo, 0, 8)
+	err := filepath.Walk(path, func(ppath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-
-		if !info.IsDir() {
-			files = append(files, info)
+		if info.IsDir() {
+			return nil
 		}
+		files = append(files, FileInfo{
+			FileInfo: info,
+			Path:     ppath,
+		})
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-
 	// 按照文件的修改时间升序排序
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].ModTime().Before(files[j].ModTime())
 	})
+	return files, nil
+}
 
-	// 找到最旧的文件
-	if len(files) > count {
-		files = files[:count]
-	}
+func CleanOldFiles(files []FileInfo, count int) (int, error) {
+	logs := make([]string, 0, count)
 
 	// 删除文件
+	num := count
 	for _, file := range files {
-		filePath := filepath.Join(path, file.Name())
-		if err := os.Remove(filePath); err != nil {
+		if err := os.Remove(file.Path); err != nil {
 			slog.Error("文件删除失败", "err", err)
-		} else {
-			slog.Info("删除旧文件", "path", filePath)
+			continue
+		}
+		num--
+		logs = append(logs, file.Path)
+		if num <= 0 {
+			break
 		}
 	}
-	return nil
+
+	if len(logs) > 0 {
+		slog.Info("删除旧文件", "logs", logs)
+	}
+
+	return count - num, nil
 }
 
 // RemoveEmptyDirs 删除空目录
@@ -103,4 +113,17 @@ func RemoveEmptyDirs(rootDir string) error {
 		}
 		return nil
 	})
+}
+
+// Abs 获取绝对目录
+// 与 filepath.Abs 的区别是，这个以可执行文件目录为工作目录
+func Abs(path string) (string, error) {
+	if filepath.IsAbs(path) {
+		return filepath.Clean(path), nil
+	}
+	bin, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(filepath.Dir(bin), path), nil
 }
