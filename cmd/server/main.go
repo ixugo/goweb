@@ -36,6 +36,13 @@ func getBuildRelease() bool {
 
 func main() {
 	flag.Parse()
+
+	// 初始化工作目录为可执行文件目录
+	bin, _ := os.Executable()
+	if err := os.Chdir(filepath.Dir(bin)); err != nil {
+		slog.Error("change dir error")
+	}
+
 	// 初始化配置
 	var bc conf.Bootstrap
 	filedir, _ := abs(*configDir)
@@ -65,11 +72,6 @@ func main() {
 		expvar.Publish("timestamp", expvar.Func(func() any {
 			return time.Now().Format(time.DateTime)
 		}))
-	}
-
-	bin, _ := os.Executable()
-	if err := os.Chdir(filepath.Dir(bin)); err != nil {
-		slog.Error("change dir error")
 	}
 
 	handler, cleanUp, err := wireApp(&bc, log)
