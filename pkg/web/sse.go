@@ -71,7 +71,7 @@ func (s *SSE) Close() {
 	close(s.stream)
 }
 
-func (s *SSE) ServeHTTP(w http.ResponseWriter, _ *http.Request) {
+func (s *SSE) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	rc := http.NewResponseController(w) // nolint
 	_ = rc.SetWriteDeadline(time.Now().Add(s.timeout))
 
@@ -83,7 +83,7 @@ func (s *SSE) ServeHTTP(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set(k, v)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(req.Context())
 	s.cancel = cancel
 
 	for {

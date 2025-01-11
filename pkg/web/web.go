@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // ScrollPager 滚动翻页
@@ -24,6 +25,44 @@ type PagerFilter struct {
 	Size         int      `form:"size"`
 	Sort         string   `form:"sort"`
 	SortSafelist []string `json:"-"`
+}
+
+func NewPagerFilterMaxSize() PagerFilter {
+	return PagerFilter{
+		Size: 99999,
+	}
+}
+
+// DateFilter 日期区间过滤
+type DateFilter struct {
+	StartMs int64 `form:"start_ms"`
+	EndMs   int64 `form:"end_ms"`
+}
+
+// StartAt 开始时间
+func (d DateFilter) StartAt() time.Time {
+	return time.UnixMilli(d.StartMs)
+}
+
+// EndAt 结束时间
+func (d DateFilter) EndAt() time.Time {
+	return time.UnixMilli(d.EndMs)
+}
+
+// DefaultStartAt 当为零值或不符合规则时，返回提供的默认值
+func (d DateFilter) DefaultStartAt(date time.Time) time.Time {
+	if d.StartMs <= 0 || d.StartMs > d.EndMs {
+		return date
+	}
+	return time.UnixMilli(d.StartMs)
+}
+
+// DefaultEndAt 当为零值或不符合规则时，返回提供的默认值
+func (d DateFilter) DefaultEndAt(date time.Time) time.Time {
+	if d.EndMs <= 0 || d.EndMs < d.StartMs {
+		return date
+	}
+	return time.UnixMilli(d.EndMs)
 }
 
 // MustSortColumn 忽略安全问题
