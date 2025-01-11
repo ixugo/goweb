@@ -95,6 +95,7 @@ func main() {
 	case s := <-interrupt:
 		slog.Info(`<-interrupt`, "signal", s.String())
 	case err := <-svc.Notify():
+		system.ErrPrintf("err: %s\n", err.Error())
 		slog.Error(`<-server.Notify()`, "err", err)
 	}
 	if err := svc.Shutdown(); err != nil {
