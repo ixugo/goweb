@@ -159,6 +159,14 @@ func (m *Map[K, V]) Store(key K, value V) {
 	_, _ = m.Swap(key, value)
 }
 
+// Clear deletes all the entries, resulting in an empty Map.
+func (m *Map[K, V]) Clear() {
+	m.Range(func(key K, _ V) bool {
+		m.Delete(key)
+		return true
+	})
+}
+
 // tryCompareAndSwap compare the entry with the given old value and swaps
 // it with a new value if the entry is equal to the old value, and the entry
 // has not been expunged.
