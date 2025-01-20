@@ -31,13 +31,19 @@ Supports [code generation](github.com/ixugo/gowebx).
 
 1. Golang version >= 1.23.0
 2. `git clone github.com/ixugo/goweb`
-3. `cd goweb && go run cmd/server/.`
+3. `cd goweb && go build -o goweb ./cmd/server && ./goweb`
 4. Open a new terminal and access `curl http://localhost:8080/health`
+
+Note: When running in the editor, specify the output directory as the project root directory.
+
 
 
 ## References
 
 [Google API Design Guide](https://google-cloud.gitbook.io/api-design-guide)
+
+Best Practices for This Project: https://github.com/gowvp/gb28181
+
 
 ## Directory Structure
 

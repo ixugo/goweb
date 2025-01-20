@@ -31,15 +31,17 @@ Goweb 目标是:
 
 1. Golang 版本 >= 1.23.0
 2. `git clone github.com/ixugo/goweb`
-3. `cd goweb && go run cmd/server/.`
+3. `cd goweb && go build -o goweb ./cmd/server && ./goweb`
 4. 新开一个终端访问 `curl http://localhost:8080/health`
+
+注意: 用编辑器运行时，要指定输出目录为项目根目录
 
 
 ## 引用文章
 
 [Google API Design Guide](https://google-cloud.gitbook.io/api-design-guide)
 
-
+此项目的最佳实践: https://github.com/gowvp/gb28181
 
 ## 目录说明
 

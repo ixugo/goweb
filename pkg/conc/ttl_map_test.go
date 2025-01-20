@@ -1,7 +1,10 @@
 package conc
 
 import (
+	"fmt"
 	"strconv"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -53,4 +56,26 @@ func TestClear(t *testing.T) {
 	if l := cache.Len(); l != 0 {
 		t.Fatal("expect 0, got", l)
 	}
+}
+
+func TestConcurrentWrite(t *testing.T) {
+	cache := NewTTLMap[string, *atomic.Uint32]()
+	var i atomic.Uint32
+	cache.Store("a", &i, time.Second)
+
+	var wg sync.WaitGroup
+	for range 1000 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			i, ok := cache.Load("a")
+			if ok {
+				i.Add(1)
+			}
+		}()
+	}
+	wg.Wait()
+
+	v, ok := cache.Load("a")
+	fmt.Println(v.Load(), ok)
 }

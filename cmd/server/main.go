@@ -37,10 +37,10 @@ func getBuildRelease() bool {
 func main() {
 	flag.Parse()
 
-	// 初始化工作目录为可执行文件目录
+	// 以可执行文件所在目录为工作目录，防止以服务方式运行时，工作目录切换到其它位置
 	bin, _ := os.Executable()
 	if err := os.Chdir(filepath.Dir(bin)); err != nil {
-		slog.Error("change dir error")
+		slog.Error("change work dir fail", "err", err)
 	}
 
 	// 初始化配置
