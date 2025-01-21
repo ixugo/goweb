@@ -134,3 +134,13 @@ func GetBaseURL(req *http.Request) string {
 	host := req.Host
 	return fmt.Sprintf("%s://%s", scheme, host)
 }
+
+// GetHost 提取主机 IP 或域名
+// 例如 http://127.0.0.1:8080/health 提取出 127.0.0.1
+func GetHost(c *http.Request) string {
+	host := c.Host
+	if l := strings.Split(host, ":"); len(l) == 2 {
+		host = l[0]
+	}
+	return host
+}
