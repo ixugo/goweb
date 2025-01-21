@@ -20,7 +20,7 @@ type ServerHTTP struct {
 	Port      int         `comment:"http 端口"`                // 服务器端口号
 	Timeout   Duration    `comment:"请求超时时间"`                 // 请求超时时间
 	JwtSecret string      `comment:"jwt 秘钥，空串时，每次启动程序将随机赋值"` // JWT密钥
-	Pprof     ServerPPROF // Pprof配置
+	PProf     ServerPPROF // Pprof配置
 }
 
 // ServerPPROF 结构体，包含 Enabled 和 AccessIps 两个字段

@@ -19,24 +19,26 @@ type Core struct {
 }
 
 // NewCore ...
-func NewCore(store Storer) *Core {
-	return &Core{
-		store: store,
+func NewCore(store Storer) Core {
+	var isMigrate bool
+	return Core{
+		store:     store,
+		IsMigrate: &isMigrate,
 	}
 }
 
 // IsAutoMigrate 是否需要进行表迁移?
-func (c *Core) IsAutoMigrate(currentVer string) bool {
+func (c Core) IsAutoMigrate(currentVer string) bool {
 	var ver Version
 	if err := c.store.First(&ver); err != nil {
 		isMigrate := true
-		c.IsMigrate = &isMigrate
+		*c.IsMigrate = isMigrate
 		return isMigrate
 	}
 	isMigrate := compareVersionFunc(currentVer, ver.Version, func(a, b string) bool {
 		return a > b
 	})
-	c.IsMigrate = &isMigrate
+	*c.IsMigrate = isMigrate
 	return isMigrate
 }
 

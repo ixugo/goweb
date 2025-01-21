@@ -46,8 +46,8 @@ func NewHTTPHandler(uc *Usecase) http.Handler {
 		c.JSON(404, "来到了无人的荒漠") // 返回 JSON 格式的 404 错误信息
 	})
 	// 如果启用了 Pprof，设置 Pprof 监控
-	if cfg.HTTP.Pprof.Enabled {
-		web.SetupPProf(g, &cfg.HTTP.Pprof.AccessIps) // 设置 Pprof 监控
+	if cfg.HTTP.PProf.Enabled {
+		web.SetupPProf(g, &cfg.HTTP.PProf.AccessIps) // 设置 Pprof 监控
 	}
 
 	setupRouter(g, uc) // 设置路由处理函数
@@ -56,7 +56,7 @@ func NewHTTPHandler(uc *Usecase) http.Handler {
 }
 
 // NewVersion ...
-func NewVersion(db *gorm.DB) *version.Core {
+func NewVersion(db *gorm.DB) version.Core {
 	vdb := versiondb.NewDB(db)
 	core := version.NewCore(vdb)
 	isOK := core.IsAutoMigrate(dbVersion)

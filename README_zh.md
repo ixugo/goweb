@@ -339,6 +339,8 @@ func NewVersion(db *gorm.DB) *version.Core {
 			slog.Error("RecordVersion", "err", err)
 		}
 	}
+	// 其它组件可以调用此变量，判断是否需要表迁移
+	orm.EnabledAutoMigrate = isOK
 	return core
 }
 ```

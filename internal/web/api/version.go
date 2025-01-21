@@ -7,10 +7,10 @@ import (
 )
 
 type VersionAPI struct {
-	versionCore *version.Core
+	versionCore version.Core
 }
 
-func NewVersionAPI(ver *version.Core) VersionAPI {
+func NewVersionAPI(ver version.Core) VersionAPI {
 	return VersionAPI{versionCore: ver}
 }
 
