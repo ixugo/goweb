@@ -212,6 +212,68 @@ makefile 中提供了一些默认的操作便于快速编写
 
 3. 如果没有任何 tag，则默认版本号为 v0.0.0，后续提交次数作为版本号的次版本号。
 
+## 库如何使用?
+
+### hook.UseCache 临时缓存
+
+old
+
+```go
+cache := make(map[string]string)
+for i := range 10 {
+	v, ok := cache[i]
+	if ok {
+		// 业务处理
+		continue
+	}
+	v,err := fn()
+	if err == nil {
+		cache[v.ID] = v
+	}
+	// 业务处理
+}
+```
+
+new
+
+```go
+	cacheFn :=  hook.UseCache(fn)
+	for i := range 10 {
+		v,_,err :=  cacheFn(i)
+		if err == nil {
+			// 业务处理
+		}
+	}
+```
+
+### hook.UseTiming 计算函数花销写日志
+
+old
+
+```go
+	now := time.Now()
+	// 业务处理夹杂在时间计算中
+	if sub :=time.Since(now); sub > time.Second {
+		slog.Error("函数名", "cost", cost)
+	}else {
+		slog.Debug("函数名", "cost", cost)
+	}
+```
+
+new
+
+```go
+	cost := hook.UseTiming(time.Second)
+	defer cost()
+
+	// 业务处理
+```
+
+**更多 hook 直接看 pkg/hook 源码吧**
+
+
+
+
 ## 快速开始
 
 业务说明:

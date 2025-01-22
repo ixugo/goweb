@@ -212,6 +212,68 @@ Some default operations are provided in the Makefile to assist with rapid develo
 
 3. If there are no tags, the default version is v0.0.0, with the minor version incremented based on the number of commits.
 
+
+## How to use the library?
+
+### hook.UseCache Temporary cache
+
+old
+
+```go
+cache := make(map[string]string)
+for i := range 10 {
+	v, ok := cache[i]
+	if ok {
+		// Business processing
+		continue
+	}
+	v,err := fn()
+	if err == nil {
+		cache[v.ID] = v
+	}
+	// Business processing
+}
+```
+
+new
+
+```go
+	cacheFn :=  hook.UseCache(fn)
+	for i := range 10 {
+		v,_,err :=  cacheFn(i)
+		if err == nil {
+			// Business processing
+		}
+	}
+```
+
+### hook.UseTiming Log the cost of function computation
+
+old
+
+```go
+	now := time.Now()
+	// Business logic is intermingled with time calculation
+	if sub :=time.Since(now); sub > time.Second {
+		slog.Error("func name", "cost", cost)
+	}else {
+		slog.Debug("func name", "cost", cost)
+	}
+```
+
+new
+
+```go
+	cost := hook.UseTiming(time.Second)
+	defer cost()
+
+	// Business processing
+```
+
+**Check out the source code in pkg/hook for more hooks.**
+
+
+
 ## Quick Start
 
 Example business logic:
