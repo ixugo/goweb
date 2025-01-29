@@ -11,15 +11,39 @@ import (
 // QueryOption ..
 type QueryOption func(*gorm.DB) *gorm.DB
 
+type Query struct {
+	data []QueryOption
+}
+
+func NewQuery(l int) *Query {
+	return &Query{
+		data: make([]QueryOption, 0, l),
+	}
+}
+
+func (q *Query) Where(query any, args ...any) *Query {
+	q.data = append(q.data, Where(query, args...))
+	return q
+}
+
+func (q *Query) OrderBy(value any) *Query {
+	q.data = append(q.data, OrderBy(value))
+	return q
+}
+
+func (q *Query) Encode() []QueryOption {
+	return q.data
+}
+
 // Where 查询条件
-func Where(query interface{}, args ...interface{}) QueryOption {
+func Where(query any, args ...any) QueryOption {
 	return func(d *gorm.DB) *gorm.DB {
 		return d.Where(query, args...)
 	}
 }
 
 // OrderBy 排序条件
-func OrderBy(value interface{}) QueryOption {
+func OrderBy(value any) QueryOption {
 	return func(d *gorm.DB) *gorm.DB {
 		return d.Order(value)
 	}
@@ -27,11 +51,17 @@ func OrderBy(value interface{}) QueryOption {
 
 // Universal 通用增删改查
 type Universal[T any] interface {
-	First(*T, ...QueryOption) error
-	Update(*T, func(*T), ...QueryOption) error
-	Delete(*T, ...QueryOption) error
-	Create(*T) error
-	Find(out *[]*T, p Pager, opts ...QueryOption) (int64, error)
+	Get(context.Context, *T, ...QueryOption) error
+	Edit(context.Context, *T, func(*T), ...QueryOption) error
+	Del(context.Context, *T, ...QueryOption) error
+	Add(context.Context, *T) error
+	Find(context.Context, *[]*T, Pager, ...QueryOption) (int64, error)
+}
+
+// UniversalSession 通用事务
+type UniversalSession[T any] interface {
+	Session(ctx context.Context, changeFns ...func(*gorm.DB) error) error
+	EditWithSession(tx *gorm.DB, model *T, changeFn func(*T) error, opts ...QueryOption) error
 }
 
 type Type[T any] struct {
@@ -39,12 +69,12 @@ type Type[T any] struct {
 }
 
 func NewUniversal[T any](db *gorm.DB) Universal[T] {
-	return &Type[T]{db: db}
+	return Type[T]{db: db}
 }
 
 // First 通用查询
-func (t *Type[T]) First(out *T, opts ...QueryOption) error {
-	return FirstWithContext(context.TODO(), t.db, out, opts...)
+func (t Type[T]) Get(ctx context.Context, out *T, opts ...QueryOption) error {
+	return FirstWithContext(ctx, t.db, out, opts...)
 }
 
 func First(db *gorm.DB, out any, opts ...QueryOption) error {
@@ -62,8 +92,12 @@ func FirstWithContext(ctx context.Context, db *gorm.DB, out any, opts ...QueryOp
 }
 
 // Update 通用更新
-func (t Type[T]) Update(model *T, changeFn func(*T), opts ...QueryOption) error {
-	return UpdateWithContext(context.TODO(), t.db, model, changeFn, opts...)
+func (t Type[T]) Edit(ctx context.Context, model *T, changeFn func(*T), opts ...QueryOption) error {
+	return UpdateWithContext(ctx, t.db, model, changeFn, opts...)
+}
+
+func (t Type[T]) Add(ctx context.Context, model *T) error {
+	return t.db.WithContext(ctx).Create(model).Error
 }
 
 func Update[T any](db *gorm.DB, model *T, changeFn func(*T), opts ...QueryOption) error {
@@ -109,8 +143,8 @@ func UpdateWithSession[T any](tx *gorm.DB, model *T, fn func(*T) error, opts ...
 }
 
 // Delete 通用删除
-func (t Type[T]) Delete(model *T, opts ...QueryOption) error {
-	return DeleteWithContext(context.TODO(), t.db, model, opts...)
+func (t Type[T]) Del(ctx context.Context, model *T, opts ...QueryOption) error {
+	return DeleteWithContext(ctx, t.db, model, opts...)
 }
 
 func Delete(db *gorm.DB, model any, opts ...QueryOption) error {
@@ -128,17 +162,13 @@ func DeleteWithContext(ctx context.Context, db *gorm.DB, model any, opts ...Quer
 	return db.WithContext(ctx).Delete(model).Error
 }
 
-func (t Type[T]) Create(model *T) error {
-	return t.db.Create(model).Error
-}
-
 type Pager interface {
 	Limit() int
 	Offset() int
 }
 
-func (t Type[T]) Find(out *[]*T, p Pager, opts ...QueryOption) (int64, error) {
-	return Find(t.db, out, p, opts...)
+func (t Type[T]) Find(ctx context.Context, out *[]*T, p Pager, opts ...QueryOption) (int64, error) {
+	return FindWithContext(ctx, t.db, out, p, opts...)
 }
 
 func Find[T any](db *gorm.DB, out *[]*T, p Pager, opts ...QueryOption) (int64, error) {
