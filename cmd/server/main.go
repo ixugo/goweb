@@ -46,6 +46,7 @@ func main() {
 	// 初始化配置
 	var bc conf.Bootstrap
 	filedir, _ := abs(*configDir)
+	os.MkdirAll(filedir, 0o755)
 	filePath := filepath.Join(filedir, "config.toml")
 	if err := conf.SetupConfig(&bc, filePath); err != nil {
 		panic(err)
